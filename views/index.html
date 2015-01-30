@@ -5,7 +5,6 @@
     <hr>
     <ul class="list-unstyled">
     	{% for page in pages %}
-    		<!-- <li><a href="{{ page.full_route }}">{{ page.title }}</a></li> -->
     		<li>{{ page | page_link }}</li>
     	{% endfor %}
     </ul>

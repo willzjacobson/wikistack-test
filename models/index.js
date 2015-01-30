@@ -12,7 +12,8 @@ var pageSchema = new Schema({
   owner_id:   String,
   body:   { type: String, required: true },
   date: { type: Date, default: Date.now },
-  status: Number
+  status: Number,
+  tags: [String]
 });
 
 pageSchema.methods.computeUrlName = function() {

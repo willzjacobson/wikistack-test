@@ -20,15 +20,26 @@ router.get('/wiki/:title', function(req, res, next) {
   models.Page.findOne({ url_name: req.params.title }, function(err, page) {
     if(err) return next(err)
     if(!page) return res.status(404).send()
-    res.render('show', { 
-      title: page.title,
-      body: page.body
-    })
+      
+    for(var key in page) {
+      res.locals[key] = page[key]
+    }
+
+    res.render('show')
   })
 })
 
 router.post('/add/submit', function(req, res) {
+  var tags = req.body.tags.split(',').map(function(tag) {
+    return tag.trim()
+  })
+  delete req.body.tags
+
   var newPage = new models.Page(req.body)
+
+  tags.forEach(function(tag) {
+    newPage.tags.addToSet(tag)
+  })
 
   newPage.save(function(err, page) {
     console.log(page)
