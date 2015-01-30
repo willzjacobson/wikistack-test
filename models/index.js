@@ -15,6 +15,17 @@ var pageSchema = new Schema({
   status: Number
 });
 
+pageSchema.methods.computeUrlName = function() {
+	if(this.title.length > 0) {
+		this.url_name = this.title.replace(/[\W\s]/g, '_');
+	}
+}
+
+pageSchema.pre('save', function(next) {
+	this.computeUrlName()
+	next()
+})
+
 pageSchema.virtual('full_route').get(function() {
 	return "/wiki/" + this.url_name;
 })

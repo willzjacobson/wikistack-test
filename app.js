@@ -3,6 +3,11 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var swig = require('swig');
+
+var setupFilters = require('./filters')
+
+setupFilters(swig)
+
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
