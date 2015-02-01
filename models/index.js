@@ -22,6 +22,21 @@ pageSchema.methods.computeUrlName = function() {
 	}
 }
 
+pageSchema.statics.findByTag = function(tag, cb) {
+	this.find({ tag: { $elemMatch: { $eq: tag} } }, cb)
+}
+
+pageSchema.methods.getSimilar = function(cb) {
+	this.constructor.find({
+		_id: { $ne: this._id },
+		tag: {
+			$elemMatch: { 
+				$in: this.tags
+			}
+		}
+	}, cb)
+}
+
 pageSchema.pre('save', function(next) {
 	this.computeUrlName()
 	next()

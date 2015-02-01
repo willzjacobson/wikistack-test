@@ -20,7 +20,7 @@ router.get('/wiki/:title', function(req, res, next) {
   models.Page.findOne({ url_name: req.params.title }, function(err, page) {
     if(err) return next(err)
     if(!page) return res.status(404).send()
-      
+
     for(var key in page) {
       res.locals[key] = page[key]
     }
@@ -29,10 +29,49 @@ router.get('/wiki/:title', function(req, res, next) {
   })
 })
 
-router.post('/add/submit', function(req, res) {
-  var tags = req.body.tags.split(',').map(function(tag) {
+router.get('/wiki/:url_name/edit', function(req, res) {
+  models.Page.findOne({ url_name: req.params.url_name }, function(err, page) {
+    res.render('edit', { 
+      title: page.title, 
+      body: page.body, 
+      tags: page.tags.join(', '),
+      url_name: page.url_name
+     })
+  })
+})
+
+var tagStrToArr = function(tagStr) {
+  return tagStr.split(',').map(function(tag) {
     return tag.trim()
   })
+}
+
+router.post('/wiki/:url_name/edit', function(req, res) {
+  models.Page.findOne({ url_name: req.params.url_name }, function(err, page) {
+    var tags = tagStrToArr(req.body.tags)
+    delete req.body.tags
+
+    page.tags = [];
+
+    tags.forEach(function(tag) {
+      page.tags.addToSet(tag)
+    })
+
+    //I'm overwriting properites on page that exist in req.body
+    //namely title and body
+    for(var key in req.body) {
+      page[key] = req.body[key]
+    }
+
+    page.save(function(err, page) {
+      console.log('this is page before redirect', page)
+      res.redirect(page.full_route)
+    })
+  });
+})
+
+router.post('/add/submit', function(req, res) {
+  var tags = tagStrToArr(req.body.tags)
   delete req.body.tags
 
   var newPage = new models.Page(req.body)

@@ -16,5 +16,9 @@
     "morgan": "~1.5.1",
     "serve-favicon": "~2.2.0",
     "swig": "^1.4.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^4.6.2"
   }
 }
