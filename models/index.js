@@ -16,10 +16,14 @@ var pageSchema = new Schema({
   tags: [String]
 });
 
+// Omri and I added this so that we wouldn't have to check
+// the length of title in various parts of the code - ZO
+pageSchema.path('title').validate(function(v) {
+	return v.length > 0
+}, "The title must have a length greater than zero")
+
 pageSchema.methods.computeUrlName = function() {
-	if(this.title.length > 0) {
-		this.url_name = this.title.replace(/[\W\s]/g, '_');
-	}
+	this.url_name = this.title.replace(/[\W\s]/g, '_');
 }
 
 pageSchema.statics.findByTag = function(tag, cb) {
