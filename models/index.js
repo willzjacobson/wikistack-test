@@ -19,7 +19,7 @@ var pageSchema = new Schema({
 // Omri and I added this so that we wouldn't have to check
 // the length of title in various parts of the code - ZO
 pageSchema.path('title').validate(function(v) {
-	return v.length > 0
+	return v && v.length > 0
 }, "The title must have a length greater than zero")
 
 pageSchema.methods.computeUrlName = function() {
@@ -27,13 +27,13 @@ pageSchema.methods.computeUrlName = function() {
 }
 
 pageSchema.statics.findByTag = function(tag, cb) {
-	this.find({ tag: { $elemMatch: { $eq: tag} } }, cb)
+	this.find({ tags: { $elemMatch: { $eq: tag} } }, cb)
 }
 
 pageSchema.methods.getSimilar = function(cb) {
 	this.constructor.find({
 		_id: { $ne: this._id },
-		tag: {
+		tags: {
 			$elemMatch: { 
 				$in: this.tags
 			}
