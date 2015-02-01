@@ -49,8 +49,10 @@ router.get('/wiki/:title/similar', function(req, res, next) {
   })
 })
 
-router.get('/wiki/:url_name/edit', function(req, res) {
+router.get('/wiki/:url_name/edit', function(req, res, next) {
   models.Page.findOne({ url_name: req.params.url_name }, function(err, page) {
+    if(err) return next(err)
+    if(!page) return next()
     res.render('edit', { 
       title: page.title, 
       body: page.body, 
@@ -66,8 +68,9 @@ var tagStrToArr = function(tagStr) {
   })
 }
 
-router.post('/wiki/:url_name/edit', function(req, res) {
+router.post('/wiki/:url_name/edit', function(req, res, next) {
   models.Page.findOne({ url_name: req.params.url_name }, function(err, page) {
+    if(!page) return next()
     var tags = tagStrToArr(req.body.tags)
     delete req.body.tags
 
@@ -84,6 +87,8 @@ router.post('/wiki/:url_name/edit', function(req, res) {
     }
 
     page.save(function(err, page) {
+      console.log(err)
+      if(err) return next(err)
       console.log('this is page before redirect', page)
       res.redirect(page.full_route)
     })
@@ -101,7 +106,6 @@ router.post('/add/submit', function(req, res) {
   })
 
   newPage.save(function(err, page) {
-    console.log(page)
     res.redirect(page.full_route)
   })
 })
