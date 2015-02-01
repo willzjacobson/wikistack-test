@@ -13,6 +13,12 @@ router.get('/', function(req, res, next) {
 
 });
 
+router.get('/wiki/tags/:tag', function(req, res) {
+  models.Page.findByTag(req.params.tag, function(err, pages) {
+    res.render('index', {pages: pages, title: 'Pages matching tag: ' + req.params.tag})
+  })
+})
+
 router.get('/wiki/:title', function(req, res, next) {
   //look at page name
   //find the page in the database
@@ -26,6 +32,20 @@ router.get('/wiki/:title', function(req, res, next) {
     }
 
     res.render('show')
+  })
+})
+
+router.get('/wiki/:title/similar', function(req, res, next) {
+  models.Page.findOne({ url_name: req.params.title }, function(err, page) {
+    if(err) return next(err)
+    if(!page) return res.status(404).send()
+
+    page.getSimilar(function(err, pages) {
+      res.render('index', {
+        pages: pages,
+        title: 'Pages similar to: ' + page.title
+      })
+    })
   })
 })
 

@@ -3,9 +3,9 @@
 {% block title %}wikistack - {{ title }}{% endblock %}
 
 {% block content %}
-	<h3>{{ title }}</h3>
+	<h3>{{ title }}<small> (<a href="{{ url_name }}/similar">Similar</a>)</small></h3>
 	{% for tag in tags %}
-	{{ tag }} |
+	<a href="/wiki/tags/{{ tag }}">{{ tag }}</a> |
 	{% endfor %}
 	<hr>
 	<div class="page-body">{{ body | marked }}</div>
