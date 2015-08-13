@@ -1,84 +1,67 @@
-'use strict';
-var marked = require('marked');
 var mongoose = require('mongoose');
-mongoose.Promise = require('bluebird');
 mongoose.connect('mongodb://localhost/wikistack');
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'mongodb connection error:'));
 
-var statuses = ['open', 'closed'];
+var Page, User;
+var Schema = mongoose.Schema;
 
-var pageSchema = new mongoose.Schema({
-  title:    {type: String, required: true},
-  urlTitle: {type: String, required: true},
-  content:  {type: String, required: true},
-  status:   {type: String, enum: statuses},
-  date:     {type: Date, default: Date.now },
-  author:   {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
+var pageSchema = new Schema({
+  title: { type: String, required: true },
+  url_name: String,
+  owner_id:   String,
+  body:   { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  status: Number,
+  tags: [String]
 });
 
-pageSchema.virtual('route').get(function(){
-  return '/wiki/' + this.urlTitle;
-});
+// Omri and I added this so that we wouldn't have to check
+// the length of title in various parts of the code - ZO
+pageSchema.path('title').validate(function(v) {
+	return v && v.length > 0
+}, "The title must have a length greater than zero")
 
-pageSchema.virtual('renderedContent').get(function(){
-  var doubleBracketTags = /\[\[(.*?)\]\]/g;
-  var renderedContent = this.content.replace(doubleBracketTags, replacer);
-  function replacer(match, innerText) {
-    return '<a href="/wiki/' + generateUrlTitle(innerText) + '">' + innerText + '</a>';
-  }
-  return marked(renderedContent);
-});
-
-function generateUrlTitle (title) {
-  if (typeof title !== 'undefined' && title !== '') {
-    return title.replace(/\s+/g, '_').replace(/\W/g, '');
-  } else return Math.random().toString(36).substring(2, 7);
+pageSchema.methods.computeUrlName = function() {
+	this.url_name = this.title.replace(/[\W\s]/g, '_');
 }
 
-// made this a static so I could easily require it in an optional filter
-pageSchema.statics.generateUrlTitle = generateUrlTitle;
+pageSchema.statics.findByTag = function(tag, cb) {
+	this.find({ tags: { $elemMatch: { $eq: tag} } }, cb)
+}
 
-pageSchema.pre('validate', function(next) {
-  this.urlTitle = generateUrlTitle(this.title);
-  next();
+pageSchema.methods.getSimilar = function(cb) {
+	this.constructor.find({
+		_id: { $ne: this._id },
+		tags: {
+			$elemMatch: { 
+				$in: this.tags
+			}
+		}
+	}, cb)
+}
+
+pageSchema.pre('save', function(next) {
+	this.computeUrlName()
+	next()
+})
+
+pageSchema.virtual('full_route').get(function() {
+	return "/wiki/" + this.url_name;
+})
+
+var userSchema = new Schema({
+  name:  {
+      first: { type: String, required: true },
+      last: { type: String, required: true }
+    },
+  email: { type: String, required: true }
 });
 
-var userSchema = new mongoose.Schema({
-  name: {type: String, required: true},
-  email: {type: String, required: true, unique: true}
-});
-
-userSchema.statics.findOrCreate = function (props) {
-  var self = this;
-  return self.findOne({email: props.email}).exec().then(function(user){
-    if (user) return user;
-    else return self.create({
-      email: props.email,
-      name:  props.name
-    });
-  });
-};
-
-// callback version
-// userSchema.statics.findOrCreate = function (props, cb) {
-//   var self = this;
-//   self.findOne({ email: props.email }).exec(function(err, user){
-//     if (err) cb(err);
-//     else if (user) cb(null, user);
-//     else {
-//       self.create({
-//         email: props.email,
-//         name:  props.email
-//       }, cb);
-//     }
-//   });
-// };
-
-var Page = mongoose.model('Page', pageSchema);
-var User = mongoose.model('User', userSchema);
+Page = mongoose.model('Page', pageSchema);
+User = mongoose.model('User', userSchema);
 
 module.exports = {
-  Page: Page,
-  User: User
+	Page: Page, 
+	User: User
 };
