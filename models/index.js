@@ -27,17 +27,13 @@ pageSchema.methods.computeUrlName = function() {
 }
 
 pageSchema.statics.findByTag = function(tag, cb) {
-	this.find({ tags: { $elemMatch: { $eq: tag} } }, cb)
+	this.find({ tags: tag }, cb)
 }
 
 pageSchema.methods.getSimilar = function(cb) {
 	this.constructor.find({
 		_id: { $ne: this._id },
-		tags: {
-			$elemMatch: { 
-				$in: this.tags
-			}
-		}
+		tags: $in: this.tags
 	}, cb)
 }
 
