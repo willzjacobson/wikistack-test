@@ -69,6 +69,7 @@ var tagStrToArr = function(tagStr) {
 }
 
 router.post('/wiki/:url_name/edit', function(req, res, next) {
+  console.log("BODY", req.body);
   models.Page.findOne({ url_name: req.params.url_name }, function(err, page) {
     if(!page) return next()
     var tags = tagStrToArr(req.body.tags)

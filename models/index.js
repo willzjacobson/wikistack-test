@@ -27,7 +27,7 @@ pageSchema.statics.findByTag = function(tag, cb) {
 pageSchema.methods.getSimilar = function(cb) {
 	this.constructor.find({
 		_id: { $ne: this._id },
-		tags: $in: this.tags
+		tags: {$in: this.tags}
 	}, cb)
 }
 
